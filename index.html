@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E&amp;PDE 2027 · A / B</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #111827;
+      --ink-body: #1f2937;
+      --muted: #71717a;
+      --line: #e4e4e7;
+      --surface: #fafafa;
+
+      --c-bg: #eef2ff;
+      --t-bg: #3730a3;
+      --c-problem: #fef2f2;
+      --t-problem: #991b1b;
+      --c-objective: #ecfdf5;
+      --t-objective: #065f46;
+      --c-method: #eff6ff;
+      --t-method: #1e40af;
+      --c-findings: #fffbeb;
+      --t-findings: #92400e;
+      --c-expected: #f5f3ff;
+      --t-expected: #5b21b6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 28px 64px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+
+    .brand-meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: #a1a1aa;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .btn[aria-pressed="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #ffffff;
+    }
+
+    .segmented {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .segmented button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      height: 32px;
+      padding: 0 12px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .segmented button + button {
+      border-left: 1px solid var(--line);
+    }
+
+    .segmented button:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: -2px;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .legend {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 0 6px;
+    }
+
+    .legend.visible {
+      display: flex;
+    }
+
+    .legend-chip {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s ease, border-color 0.15s ease;
+    }
+
+    .legend-chip[aria-pressed="true"] {
+      border-color: currentColor;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 44px;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 880px) {
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+    }
+
+    .column {
+      min-width: 0;
+    }
+
+    @media (min-width: 881px) {
+      .column + .column {
+        border-left: 1px solid var(--line);
+        padding-left: 44px;
+      }
+    }
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 4px;
+      background: var(--ink);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .word-count {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .doc-title {
+      margin: 0 0 18px 0;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .doc-body p {
+      margin: 0 0 14px 0;
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--ink-body);
+    }
+
+    .doc-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .seg {
+      border-radius: 3px;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    .seg-tag {
+      display: none;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-right: 5px;
+      vertical-align: 1px;
+      letter-spacing: 0.01em;
+    }
+
+    body.annotated .seg {
+      padding: 1px 3px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    body.annotated .seg-tag {
+      display: inline-block;
+    }
+
+    body.annotated .seg[data-role="bg"] { background: var(--c-bg); }
+    body.annotated .seg[data-role="bg"] .seg-tag,
+    .legend-chip[data-role="bg"] { background: var(--c-bg); color: var(--t-bg); }
+
+    body.annotated .seg[data-role="problem"] { background: var(--c-problem); }
+    body.annotated .seg[data-role="problem"] .seg-tag,
+    .legend-chip[data-role="problem"] { background: var(--c-problem); color: var(--t-problem); }
+
+    body.annotated .seg[data-role="objective"] { background: var(--c-objective); }
+    body.annotated .seg[data-role="objective"] .seg-tag,
+    .legend-chip[data-role="objective"] { background: var(--c-objective); color: var(--t-objective); }
+
+    body.annotated .seg[data-role="method"] { background: var(--c-method); }
+    body.annotated .seg[data-role="method"] .seg-tag,
+    .legend-chip[data-role="method"] { background: var(--c-method); color: var(--t-method); }
+
+    body.annotated .seg[data-role="findings"] { background: var(--c-findings); }
+    body.annotated .seg[data-role="findings"] .seg-tag,
+    .legend-chip[data-role="findings"] { background: var(--c-findings); color: var(--t-findings); }
+
+    body.annotated .seg[data-role="expected"] { background: var(--c-expected); }
+    body.annotated .seg[data-role="expected"] .seg-tag,
+    .legend-chip[data-role="expected"] { background: var(--c-expected); color: var(--t-expected); }
+
+    body.annotated[data-focus] .seg {
+      opacity: 0.25;
+      background: transparent;
+    }
+
+    body.annotated[data-focus="bg"] .seg[data-role="bg"],
+    body.annotated[data-focus="problem"] .seg[data-role="problem"],
+    body.annotated[data-focus="objective"] .seg[data-role="objective"],
+    body.annotated[data-focus="method"] .seg[data-role="method"],
+    body.annotated[data-focus="findings"] .seg[data-role="findings"],
+    body.annotated[data-focus="expected"] .seg[data-role="expected"] {
+      opacity: 1;
+    }
+
+    body.annotated[data-focus="bg"] .seg[data-role="bg"] { background: var(--c-bg); }
+    body.annotated[data-focus="problem"] .seg[data-role="problem"] { background: var(--c-problem); }
+    body.annotated[data-focus="objective"] .seg[data-role="objective"] { background: var(--c-objective); }
+    body.annotated[data-focus="method"] .seg[data-role="method"] { background: var(--c-method); }
+    body.annotated[data-focus="findings"] .seg[data-role="findings"] { background: var(--c-findings); }
+    body.annotated[data-focus="expected"] .seg[data-role="expected"] { background: var(--c-expected); }
+
+    .sub-block {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      transition: opacity 0.15s ease;
+    }
+
+    .sub-label {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+    }
+
+    .sub-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--ink-body);
+    }
+
+    .kw-block {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      transition: opacity 0.15s ease;
+    }
+
+    .kw-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .kw-item {
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--ink-body);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 3px 9px;
+    }
+
+    body.annotated[data-focus] .sub-block,
+    body.annotated[data-focus] .kw-block {
+      opacity: 0.35;
+    }
+
+    @media print {
+      .controls {
+        display: none;
+      }
+      .container {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div class="brand">
+        <h1 class="brand-title" id="page-heading">E&amp;PDE 2027 摘要对比</h1>
+        <span class="brand-meta" id="page-date">2026-11-16</span>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn" id="toggle-annotations" aria-pressed="true" aria-label="切换结构标注">标注</button>
+        <div class="segmented" role="group" aria-label="语言切换">
+          <button type="button" id="lang-zh" aria-pressed="true">中文</button>
+          <button type="button" id="lang-en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="legend" id="legend" aria-label="结构标注图例"></div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <script>
+    const ROLES = [
+      { key: "bg", zh: "背景", en: "Background" },
+      { key: "problem", zh: "问题", en: "Problem" },
+      { key: "objective", zh: "目的", en: "Objective" },
+      { key: "method", zh: "方法", en: "Methods" },
+      { key: "findings", zh: "已有发现", en: "Findings" },
+      { key: "expected", zh: "预期结果", en: "Expected" }
+    ];
+
+    const DATA = {
+      zh: {
+        heading: "E&PDE 2027 摘要对比",
+        toggleLabel: "标注",
+        toggleAria: "切换结构标注",
+        countUnit: "字",
+        outcomesLabel: "新的相关研究成果",
+        keywordsLabel: "关键词",
+        drafts: [
+          {
+            id: "A",
+            title: "A 共创视角下植物园解说标识研究Ⅲ：从单块标识共创走向空间学习路径",
+            paragraphs: [
+              [
+                { role: "bg", text: "解说标识是植物园开展非正式公众教育的核心媒介。" },
+                { role: "problem", text: "然而，现有标识往往难以有效吸引访客或支持持久学习，参与式改版也难以将主观反馈转化为覆盖连续游览路径的系统性改进。" },
+                { role: "objective", text: "本研究旨在建立一条连接访客经验、空间认知机制与实证记忆评价的连贯共创路径，以改善解说标识设计。" }
+              ],
+              [
+                { role: "method", text: "以福冈市植物园为合作案例，我们综合工作坊、解说理论、标识审计与专家访谈，围绕日常关联性对印刷标识进行了改版，并开发了非接触式网络摄像头视线工具以与既有标识开展配对比较。" },
+                { role: "findings", text: "探索性结果显示，在最初十秒浏览窗口内，改版标识上的文本区域注视覆盖均值更高，日常关联内容的视线占比更大，但在完整观看期间的整体注视覆盖均值较低。" }
+              ],
+              [
+                { role: "method", text: "鉴于学习发生在连续路径而非孤立单板上，后续工作进一步拓展至多标识空间系统——结合访谈、现场走查与共创，构建信息密度、叙事连续性与标识—植物邻近性影响认知负荷与信息留存的模型，随后通过整合视线追踪、负荷量表与延迟记忆测试的控制实验加以检验。" },
+                { role: "expected", text: "本研究预期阐明空间变量支配认知负荷与留存的作用机制，并产出经实证检验的记忆导向设计原则。" }
+              ]
+            ],
+            outcomes: "本研究致力于突破传统标识设计“只看单块牌面、只凭主观经验”的局限，构建一条连接公众共创、空间认知机制与记忆评价的连续研究路径。其吸引之处在于不再仅停留在“牌面是否好看或能否瞬间吸引目光”，而是把工作坊等参与式洞察转化为可测量的设计检验：先通过非接触式视线追踪检验单块印刷标识在实际阅读中的注视分布，并进一步面向多标识连续游览空间展开实验设计，考察信息密度、叙事连贯性与牌—植邻近关系如何影响认知负荷与信息留存。该成果可为植物园、博物馆等公共文化场馆的设计师与策展团队提供体系化的导览优化思路，也能为非正式学习研究者及讲授“如何将用户反馈转化为可验证设计决策”的设计教育工作者提供参考。",
+            keywords: ["共创设计", "解说标识", "空间学习路径", "认知负荷", "记忆留存"]
+          },
+          {
+            id: "B",
+            title: "B 共创视角下植物园解说标识研究Ⅲ：超越单块注意的多模态评价框架",
+            paragraphs: [
+              [
+                { role: "bg", text: "共创正越来越多地用于改善植物园与文化场所的解说标识。" },
+                { role: "problem", text: "然而，对改版成果的评价仍主要依赖工作坊主观印象或孤立的视觉检查，未能考察多标识空间中的累积认知负荷与长时信息留存。" },
+                { role: "objective", text: "本研究旨在开发并评估一套多模态定量评价工具包，以兼顾评价空间标识路径上的即时视觉行为与深层认知及记忆结果。" }
+              ],
+              [
+                { role: "method", text: "以福冈市植物园为合作案例，我们首先构建了参与式标识审计流程，并开发了无需佩戴硬件即可将视线映射至印刷标识的非接触式网络摄像头工具。" },
+                { role: "findings", text: "既有标识与改版标识的探索性比较显示，在最初十秒浏览窗口内，改版标识的文本区域注视覆盖均值更高、日常关联内容的注意占比更大，同时完整观看期间的注视覆盖均值较低——这表明了印刷标识注意映射的可行性，也凸显出开展精度基准校验与引入直接学习指标的必要性。" }
+              ],
+              [
+                { role: "method", text: "面向温室连续游览路径，后续研究结合现场走查、认知负荷理论与共创提炼系统设计原则，并规划整合升级版视线追踪（将分布式追踪作为候选方案）、负荷量表与延迟记忆测试的多标识实验。" },
+                { role: "expected", text: "本阶段预期建立标识组织方式、视觉行为、认知负荷与留存之间的定量关联，并交付一套经过基准校准的多标识空间评价工具包。" }
+              ]
+            ],
+            outcomes: "本研究针对设计评估中“主观工作坊反馈难以客观验证、而传统穿戴式眼动仪又难以低门槛部署到真实展陈空间”的双重难题，推进一套面向解说标识的多模态定量评价工具体系。其吸引之处在于从日常易得的普通网络摄像头切入，实现了无需受试者佩戴任何硬件即可将视线映射至印刷标识的非接触式测量，并在此基础上进一步规划整合精度基准校验、面向连续游览路径的多标识追踪，以及认知负荷量表与延迟记忆测试——从而让“看了哪里”“认知负担如何”与“记住了多少”能够被协同评估。该工具体系对博物馆、植物园及文化场所的研究与评估团队具有直接的实践参考价值，也可为关注低侵入人因测量的设计研究者，以及讲授循证设计与用户评价方法的设计教育工作者提供可借鉴的工具开发与方法论范例。",
+            keywords: ["共创设计", "解说标识", "多模态评价", "视线追踪", "记忆评估"]
+          }
+        ]
+      },
+      en: {
+        heading: "E&PDE 2027 Abstract Comparison",
+        toggleLabel: "Annotations",
+        toggleAria: "Toggle structural annotations",
+        countUnit: "words",
+        outcomesLabel: "New and Relevant Research Outcomes",
+        keywordsLabel: "Keywords",
+        drafts: [
+          {
+            id: "A",
+            title: "Study on Botanical Garden Interpretive Signage through Co-creation III: From Single-Sign Co-creation to Spatial Learning Pathways",
+            paragraphs: [
+              [
+                { role: "bg", text: "Interpretive signage serves as the primary medium for informal education in botanical gardens." },
+                { role: "problem", text: "Yet existing signs often fail to engage visitors or support lasting learning, and participatory redesign struggles to translate subjective feedback into systematic improvements across routes." },
+                { role: "objective", text: "This study aims to establish a coherent co-creation pathway linking visitor experience, spatial cognitive mechanisms, and empirical memory evaluation to improve signage design." }
+              ],
+              [
+                { role: "method", text: "Taking Fukuoka City Botanical Garden as a collaborative case, we combined workshops, interpretation theory, signage audits, and expert interviews to redesign printed signs around everyday relevance, and built a non-contact webcam gaze tool for paired comparisons with existing signs." },
+                { role: "findings", text: "Exploratory results showed higher mean gaze coverage on text during the first ten seconds and a greater gaze share on everyday-relevance content for redesigned signs, alongside lower full-period mean gaze coverage." }
+              ],
+              [
+                { role: "method", text: "Because learning unfolds across routes rather than isolated panels, ongoing work extends to multi-sign systems—combining interviews, walk-throughs, and co-creation to model how information density, narrative continuity, and sign-to-plant proximity shape cognitive load and retention, followed by controlled experiments pairing gaze tracking, workload scales, and delayed memory tests." },
+                { role: "expected", text: "The study is expected to clarify how spatial variables govern cognitive load and retention and yield empirically tested, memory-oriented design principles." }
+              ]
+            ],
+            outcomes: "Rather than treating interpretive signs as isolated panels evaluated solely by subjective opinion or first-glance appeal, this work connects participatory co-creation with spatial cognition and memory evaluation across continuous visitor routes. What makes the paper compelling is how it turns subjective stakeholder feedback into a testable design pathway: combining grounded single-sign gaze observation on printed materials with ongoing multi-sign investigation of how information density, narrative continuity, and sign-to-plant proximity affect cognitive load and retention. This pathway will be useful for designers and curators in botanical gardens, museums, and heritage sites seeking evidence-informed spatial signage strategies, researchers studying informal learning, and design educators seeking structured examples of translating user insights into verifiable design decisions.",
+            keywords: ["Co-creation", "Interpretive Signage", "Spatial Learning Pathways", "Cognitive Load", "Memory Retention"]
+          },
+          {
+            id: "B",
+            title: "Study on Botanical Garden Interpretive Signage through Co-creation III: A Multi-Modal Evaluation Framework Beyond Single-Sign Attention",
+            paragraphs: [
+              [
+                { role: "bg", text: "Co-creation is increasingly used to improve interpretive signage in botanical gardens and cultural venues." },
+                { role: "problem", text: "However, evaluating redesigns still relies largely on subjective workshop impressions or isolated visual checks, leaving cumulative cognitive load and long-term retention across multi-sign spaces unexamined." },
+                { role: "objective", text: "This study aims to develop and evaluate a multi-modal quantitative toolkit assessing both immediate visual behaviour and deeper cognitive and memory outcomes across spatial signage routes." }
+              ],
+              [
+                { role: "method", text: "Taking Fukuoka City Botanical Garden as a collaborative case, we first built a participatory signage audit alongside a non-contact webcam gaze tool mapping attention onto printed signs without wearable hardware." },
+                { role: "findings", text: "Exploratory comparisons of existing and redesigned signs recorded higher mean gaze coverage on text during the first ten seconds and greater attention share on everyday-relevance content alongside lower full-period gaze coverage—showing printed-sign mapping feasibility while highlighting needs for accuracy benchmarking and direct learning metrics." }
+              ],
+              [
+                { role: "method", text: "Extending to continuous greenhouse routes, ongoing work combines walk-throughs, cognitive load theory, and co-creation to derive system design principles, and plans multi-sign experiments pairing upgraded gaze tracking (with distributed tracking as a candidate approach), workload scales, and delayed retention tests." },
+                { role: "expected", text: "This phase is expected to establish quantitative links among signage organisation, visual behaviour, cognitive load, and retention, delivering a benchmark-calibrated evaluation toolkit for multi-sign environments." }
+              ]
+            ],
+            outcomes: "Addressing the dual challenge that subjective workshop impressions are hard to verify objectively while wearable eye-trackers remain costly and intrusive in real exhibition spaces, this paper advances a multi-modal quantitative evaluation toolkit for interpretive signage. Its appeal lies in starting from a low-barrier, non-contact webcam method that maps gaze onto printed signs without wearable hardware, and extending it toward accuracy benchmarking, multi-sign route tracking, cognitive load scales, and delayed retention tests—enabling visual attention, mental workload, and lasting recall to be evaluated together. This work will be useful for evaluation teams and practitioners in botanical gardens, museums, and cultural venues seeking accessible field methods, as well as researchers and design educators teaching evidence-based design evaluation.",
+            keywords: ["Co-creation", "Interpretive Signage", "Multi-Modal Evaluation", "Gaze Tracking", "Memory Assessment"]
+          }
+        ]
+      }
+    };
+
+    let state = {
+      lang: "zh",
+      annotated: true,
+      focusRole: null
+    };
+
+    const roleMap = Object.fromEntries(ROLES.map(r => [r.key, r]));
+    const pageHeadingEl = document.getElementById("page-heading");
+    const toggleBtn = document.getElementById("toggle-annotations");
+    const langZhBtn = document.getElementById("lang-zh");
+    const langEnBtn = document.getElementById("lang-en");
+    const legendEl = document.getElementById("legend");
+    const gridEl = document.getElementById("grid");
+
+    function countLength(draft, lang) {
+      const body = draft.paragraphs.map(p => p.map(s => s.text).join(" ")).join(" ");
+      if (lang === "en") {
+        return body.trim().split(/\s+/).length;
+      }
+      return body.replace(/\s+/g, "").length;
+    }
+
+    function renderLegend() {
+      legendEl.innerHTML = "";
+      legendEl.classList.toggle("visible", state.annotated);
+      for (const role of ROLES) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "legend-chip";
+        chip.dataset.role = role.key;
+        chip.textContent = role[state.lang];
+        chip.setAttribute("aria-pressed", String(state.focusRole === role.key));
+        chip.addEventListener("click", () => {
+          state.focusRole = state.focusRole === role.key ? null : role.key;
+          syncFocus();
+          renderLegend();
+        });
+        legendEl.appendChild(chip);
+      }
+    }
+
+    function syncFocus() {
+      if (state.annotated && state.focusRole) {
+        document.body.dataset.focus = state.focusRole;
+      } else {
+        delete document.body.dataset.focus;
+      }
+    }
+
+    function render() {
+      const bundle = DATA[state.lang];
+      document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+      pageHeadingEl.textContent = bundle.heading;
+      toggleBtn.textContent = bundle.toggleLabel;
+      toggleBtn.setAttribute("aria-label", bundle.toggleAria);
+      toggleBtn.setAttribute("aria-pressed", String(state.annotated));
+      langZhBtn.setAttribute("aria-pressed", String(state.lang === "zh"));
+      langEnBtn.setAttribute("aria-pressed", String(state.lang === "en"));
+      document.body.classList.toggle("annotated", state.annotated);
+      syncFocus();
+      renderLegend();
+
+      gridEl.innerHTML = "";
+      for (const draft of bundle.drafts) {
+        const section = document.createElement("section");
+        section.className = "column";
+
+        const header = document.createElement("div");
+        header.className = "col-header";
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = draft.id;
+
+        const wc = document.createElement("span");
+        wc.className = "word-count";
+        wc.textContent = `${countLength(draft, state.lang)} ${bundle.countUnit}`;
+
+        header.append(badge, wc);
+
+        const title = document.createElement("h2");
+        title.className = "doc-title";
+        title.textContent = draft.title;
+
+        const body = document.createElement("div");
+        body.className = "doc-body";
+
+        for (const para of draft.paragraphs) {
+          const p = document.createElement("p");
+          para.forEach((seg, idx) => {
+            if (idx > 0 && state.lang === "en") {
+              p.appendChild(document.createTextNode(" "));
+            }
+            const span = document.createElement("span");
+            span.className = "seg";
+            span.dataset.role = seg.role;
+
+            const tag = document.createElement("span");
+            tag.className = "seg-tag";
+            tag.textContent = roleMap[seg.role][state.lang];
+
+            span.append(tag, document.createTextNode(seg.text));
+            p.appendChild(span);
+          });
+          body.appendChild(p);
+        }
+
+        const outcomesSection = document.createElement("div");
+        outcomesSection.className = "sub-block";
+
+        const outcomesLabel = document.createElement("h3");
+        outcomesLabel.className = "sub-label";
+        outcomesLabel.textContent = bundle.outcomesLabel;
+
+        const outcomesText = document.createElement("p");
+        outcomesText.className = "sub-text";
+        outcomesText.textContent = draft.outcomes;
+
+        outcomesSection.append(outcomesLabel, outcomesText);
+
+        const kwSection = document.createElement("div");
+        kwSection.className = "kw-block";
+
+        const kwLabel = document.createElement("h3");
+        kwLabel.className = "sub-label";
+        kwLabel.textContent = bundle.keywordsLabel;
+
+        const kwList = document.createElement("ul");
+        kwList.className = "kw-list";
+        for (const kw of draft.keywords) {
+          const li = document.createElement("li");
+          li.className = "kw-item";
+          li.textContent = kw;
+          kwList.appendChild(li);
+        }
+
+        kwSection.append(kwLabel, kwList);
+
+        section.append(header, title, body, outcomesSection, kwSection);
+        gridEl.appendChild(section);
+      }
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      state.annotated = !state.annotated;
+      if (!state.annotated) state.focusRole = null;
+      render();
+    });
+
+    langZhBtn.addEventListener("click", () => {
+      if (state.lang !== "zh") {
+        state.lang = "zh";
+        render();
+      }
+    });
+
+    langEnBtn.addEventListener("click", () => {
+      if (state.lang !== "en") {
+        state.lang = "en";
+        render();
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("lang") === "en") state.lang = "en";
+    const annotatedParam = params.get("annotated");
+    if (annotatedParam === "0" || annotatedParam === "false") state.annotated = false;
+    else if (annotatedParam === "1" || annotatedParam === "true") state.annotated = true;
+    const focusParam = params.get("focus");
+    if (focusParam && Object.prototype.hasOwnProperty.call(roleMap, focusParam)) {
+      state.annotated = true;
+      state.focusRole = focusParam;
+    }
+
+    render();
+  </script>
+</body>
+</html>
